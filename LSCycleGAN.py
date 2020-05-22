@@ -140,16 +140,16 @@ def run_tensorflow():
             )
             total_gen_anime_loss = (
                 gen_anime_loss
-                + total_cycle_loss*0.1
-                + identity_loss(real_anime, same_anime)*0.1
+                + total_cycle_loss
+                + identity_loss(real_anime, same_anime)
                 + mse_loss(real_anime,fake_anime)*0.1
             )
 
             total_gen_human_loss = (
                 gen_human_loss
-                + total_cycle_loss*0.1
-                + identity_loss(real_human, same_human)*0.1
-                + mse_loss(real_anime,fake_anime)*0.1
+                + total_cycle_loss
+                + identity_loss(real_human, same_human)
+                + mse_loss(real_anime,fake_anime)
             )
             disc_human_loss = mse_loss(
                 disc_real_human, tf.ones_like(disc_real_human)
