@@ -35,13 +35,13 @@ class GeneratorV2(tf.keras.layers.Layer):
 
         self.layers.append( layers.Conv2D(32,(3,3),padding = 'same',kernel_initializer=init ))
         self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
-        self.layers.append( layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( layers.PReLU() )
         self.layers.append( layers.Conv2D(64,(5,5), strides=(2,2),padding = 'same',kernel_initializer=init )  )
         self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
-        self.layers.append( layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( layers.PReLU() )
         self.layers.append( layers.Conv2D(128,(5,5), strides=(2,2),padding = 'same',kernel_initializer=init )  )
         self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
-        self.layers.append( layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( layers.PReLU() )
 
         for _ in range(3):
             self.layers.append(ResNetBlockInstanceNorm(num_filter=128) )
@@ -83,7 +83,7 @@ class UpsampleGenerator(tf.keras.layers.Layer):
 
         self.layers.append( layers.Conv2D(64,(3,3),padding = 'same',kernel_initializer=init ))
         self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
-        self.layers.append( layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( layers.PReLU() )
 
         for _ in range(3):
             self.layers.append(ResNetBlockInstanceNorm(num_filter=64) )

@@ -13,8 +13,12 @@ class Res(tf.keras.layers.Layer):
         init = tf.keras.initializers.RandomNormal(stddev=0.02)
         self.layers.append(  tf.keras.layers.Conv2D(self.dim_in, (3,3), padding='same', kernel_initializer=init))
         self.layers.append(  tf.keras.layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
+
         self.layers.append(  tf.keras.layers.Conv2D(self.dim_in, (3,3), padding='same', kernel_initializer=init))
         self.layers.append(  tf.keras.layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
+
 
     def call(self, inputs):
         ori = inputs
@@ -32,21 +36,29 @@ class LS_Discriminator(tf.keras.layers.Layer):
         init = tf.keras.initializers.RandomNormal(stddev=0.02)
 
         self.layers = []
-        
-        self.layers.append(  tf.keras.layers.Conv2D(16, (5,5), strides=(2,2), padding='same', kernel_initializer=init))
-        self.layers.append(  tf.keras.layers.LeakyReLU(alpha=0.2) )
 
-        self.layers.append(  Res(16) )
-
-        self.layers.append(  tf.keras.layers.Conv2D(32, (5,5), strides=(2,2), padding='same', kernel_initializer=init))
+        self.layers.append(  tf.keras.layers.Conv2D(32, (9,9), strides=(1,1), padding='same', kernel_initializer=init))
         self.layers.append(  tf.keras.layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
 
         self.layers.append(  Res(32) )
-
-        self.layers.append(  tf.keras.layers.Conv2D(64, (5,5), strides=(2,2), padding='same', kernel_initializer=init))
+        
+        self.layers.append(  tf.keras.layers.Conv2D(64, (3,3), strides=(2,2), padding='same', kernel_initializer=init))
         self.layers.append(  tf.keras.layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
 
         self.layers.append(  Res(64) )
+
+        self.layers.append(  tf.keras.layers.Conv2D(128, (3,3), strides=(2,2), padding='same', kernel_initializer=init))
+        self.layers.append(  tf.keras.layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
+
+
+        self.layers.append(  Res(128) )
+
+        self.layers.append(  tf.keras.layers.Conv2D(128, (3,3), strides=(2,2), padding='same', kernel_initializer=init))
+        self.layers.append(  tf.keras.layers.LeakyReLU(alpha=0.2) )
+        self.layers.append( tfa.layers.InstanceNormalization(axis=-1) )
 
         self.layers.append(  tf.keras.layers.Conv2D(1, (3,3), padding='same', kernel_initializer=init))
 

@@ -19,7 +19,7 @@ from discriminator import LS_Discriminator
 from generator import GeneratorV2, UpsampleGenerator
 from datetime import datetime
 import functools
-batch_size=16
+batch_size=8
 
 def run_tensorflow():
     """
@@ -33,7 +33,7 @@ def run_tensorflow():
             for gpu in gpus:
                 tf.config.experimental.set_memory_growth(gpu, True)
             logical_gpus = tf.config.experimental.list_logical_devices("GPU")
-            print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+            print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs ")
         except RuntimeError as e:
             # Memory growth must be set before GPUs have been initialized
             print(e)
@@ -47,7 +47,7 @@ def run_tensorflow():
     CelebaData = getCelebaData(BATCH_SIZE=batch_size)
 
     generator_to_anime_optimizer = mixed_precision.LossScaleOptimizer(
-        tf.keras.optimizers.Adam(1e-4, beta_1=0.5), loss_scale="dynamic"
+        tf.keras.optimizers.Adam(1e-5, beta_1=0.5), loss_scale="dynamic"
     )
     generator_to_human_optimizer = mixed_precision.LossScaleOptimizer(
         tf.keras.optimizers.Adam(1e-4, beta_1=0.5), loss_scale="dynamic"
@@ -65,7 +65,7 @@ def run_tensorflow():
     )
 
     discriminator_anime_upscale_optimizer = mixed_precision.LossScaleOptimizer(
-        tf.keras.optimizers.Adam(2e-4, beta_1=0.5), loss_scale="dynamic"
+        tf.keras.optimizers.Adam(1e-4, beta_1=0.5), loss_scale="dynamic"
     )
 
     generator_to_anime = GeneratorV2()
@@ -132,31 +132,31 @@ def run_tensorflow():
 
             # assert()
             # calculate the loss
-            gen_anime_loss = mse_loss(disc_fake_anime, tf.ones_like(disc_fake_anime))
-            gen_human_loss = mse_loss(disc_fake_human, tf.ones_like(disc_fake_human))
+            gen_anime_loss = mse_loss(disc_fake_anime, tf.zeros_like(disc_fake_anime))
+            gen_human_loss = mse_loss(disc_fake_human, tf.zeros_like(disc_fake_human))
 
             total_cycle_loss = cycle_loss(real_human, cycled_human) + cycle_loss(
                 real_anime, cycled_anime
             )
             total_gen_anime_loss = (
                 gen_anime_loss
-                + total_cycle_loss
-                + identity_loss(real_anime, same_anime)*0.3
-                + mse_loss(real_anime,fake_anime)*0.3
+                + total_cycle_loss*0.1
+                + identity_loss(real_anime, same_anime)*0.1
+                + mse_loss(real_anime,fake_anime)*0.1
             )
 
             total_gen_human_loss = (
                 gen_human_loss
-                + total_cycle_loss
-                + identity_loss(real_human, same_human)*0.3
-                + mse_loss(real_anime,fake_anime)*0.3
+                + total_cycle_loss*0.1
+                + identity_loss(real_human, same_human)*0.1
+                + mse_loss(real_anime,fake_anime)*0.1
             )
             disc_human_loss = mse_loss(
                 disc_real_human, tf.ones_like(disc_real_human)
             ) + mse_loss(disc_fake_human, -1 * tf.ones_like(disc_fake_human))
             disc_anime_loss = mse_loss(
                 disc_real_anime, tf.ones_like(disc_real_human)
-            ) + mse_loss(disc_fake_anime, -1 * tf.ones_like(disc_fake_human))
+            ) + mse_loss(disc_fake_anime, -1 * tf.ones_like(disc_fake_anime))
 
             fake_anime_upscale = generator_anime_upscale(fake_anime, training=True)
             same_anime_upscale = generator_anime_upscale(same_anime, training=True)
@@ -169,8 +169,8 @@ def run_tensorflow():
             disc_real_big = discriminator_anime_upscale(big_anime, training=True)
 
             gen_upscale_loss = (
-                mse_loss(disc_fake_upscale, tf.ones_like(disc_fake_upscale))
-                + mse_loss(disc_same_upscale, tf.ones_like(disc_same_upscale)) * 0.5
+                mse_loss(disc_fake_upscale, tf.zeros_like(disc_fake_upscale))
+                + mse_loss(disc_same_upscale, tf.zeros_like(disc_same_upscale)) * 0.1
             )
             # tf.print("gen_upscale_loss", gen_upscale_loss)
 
@@ -280,6 +280,7 @@ def run_tensorflow():
             same_human,
             same_anime,
             fake_anime_upscale,
+            same_anime_upscale,
             # real_anime_upscale,
             gen_anime_loss,
             gen_human_loss,
@@ -307,6 +308,9 @@ def run_tensorflow():
         "same_human",
         "same_anime",
         "fake_anime_upscale",
+        "same_anime_upscale",
+
+
         "gen_anime_loss",
         "gen_human_loss",
         "disc_human_loss",
@@ -334,7 +338,7 @@ def run_tensorflow():
             with file_writer.as_default():
                 for j in range(len(result)):
 
-                    if j < 9:
+                    if j < 10:
                         tf.summary.image(
                             print_string[j],
                             process_data_for_display(result[j]),
